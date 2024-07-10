@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy package.json and package-lock.json separately to leverage Docker cache
 COPY package*.json ./
 
-# Install npm version 10.1.0 (if needed)
+# Install npm version 10.1.0 (if  needed)
 RUN npm install -g npm@10.1.0
 
 # Install dependencies based on package.json
