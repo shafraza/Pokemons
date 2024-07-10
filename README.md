@@ -1,6 +1,6 @@
 # Pokemons
 
-**Binpar - Analyst Technical Test**
+**Sample App**
 
 ## Project Overview
 
