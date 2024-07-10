@@ -44,9 +44,9 @@ The objective of this project was to develop a small application using TypeScrip
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/shafraza/Pokemons
+   git clone https://github.com/shafraza/pokemons
 
-   cd Pokemons
+   cd pokemons
 
 ### Install Dependencies
 
@@ -82,11 +82,11 @@ To create an optimized production build:
 
 Run the following command to build the Docker image:
 
-    sudo docker build -t Pokemons .
+    sudo docker build -t pokemons .
 
 ### Run Docker Container
 
 After the image is built, start a Docker container with the following command:
 
-    sudo docker run -d -p 3000:3000 Pokemons
+    sudo docker run -d -p 3000:3000 pokemons
 
