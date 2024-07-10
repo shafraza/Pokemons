@@ -50,11 +50,17 @@ The objective of this project was to develop a small application using TypeScrip
 
 ### Install Dependencies
 
-npm install
+    npm install
+
+### Set up Environment 
+
+Create a .env file in the root of your project with the following content:
+
+    POKEMON_BASE_API="https://pokeapi.co/api/v2"
 
 ### Run the Development Server
 
-npm run dev
+    npm run dev
 
 Open your browser and navigate to http://localhost:3000 to see the application running.
 
@@ -64,9 +70,8 @@ To create an optimized production build:
 
 ### Build the Project
 
-
-npm run build
+    npm run build
 
 ### Start the Production Server
 
-npm start
+    npm start
