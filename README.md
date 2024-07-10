@@ -75,3 +75,18 @@ To create an optimized production build:
 ### Start the Production Server
 
     npm start
+
+## Dockerization
+
+### Build Docker Image
+
+Run the following command to build the Docker image:
+
+    sudo docker build -t Pokemons .
+
+### Run Docker Container
+
+After the image is built, start a Docker container with the following command:
+
+    sudo docker run -d -p 3000:3000 Pokemons
+
