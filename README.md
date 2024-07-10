@@ -1,6 +1,6 @@
 # Pokemons
 
-**Sample App**
+A TypeScript and Next.js Application for Real-time Pokémon Information
 
 ## Project Overview
 
