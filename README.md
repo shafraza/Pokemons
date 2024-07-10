@@ -47,3 +47,26 @@ The objective of this project was to develop a small application using TypeScrip
    git clone https://github.com/shafraza/Pokemons
 
    cd Pokemons
+
+### Install Dependencies
+
+npm install
+
+### Run the Development Server
+
+npm run dev
+
+Open your browser and navigate to http://localhost:3000 to see the application running.
+
+### Building for Production
+
+To create an optimized production build:
+
+### Build the Project
+
+
+npm run build
+
+### Start the Production Server
+
+npm start
