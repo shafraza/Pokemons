@@ -56,7 +56,7 @@ The objective of this project was to develop a small application using TypeScrip
 
 Create a .env file in the root of your project with the following content:
 
-    POKEMON_BASE_API="https://pokeapi.co/api/v2"
+    POKEMON_BASE_API=https://pokeapi.co/api/v2
 
 ### Run the Development Server
 
