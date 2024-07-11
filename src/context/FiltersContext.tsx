@@ -33,7 +33,7 @@ export const FiltersProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [totalFetchedPokemons, setTotalFetchedPokemons] = useState<number>(0);
   // State for managing the array of all Pokémon
   const [allPokemons, setAllPokemons] = useState<Pokemon[]>([]);
-
+  // State for managing the Pokémon batches
   const [offset, setOffset] = useState<number>(0);
   
   return (
