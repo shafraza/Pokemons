@@ -41,42 +41,49 @@ interface EvolutionChainLink {
 }
 
 export const pokemonRouter = t.router({
-  getPokemons: t.procedure.query(async (): Promise<Pokemon[]> => {
-    const allPokemons: Pokemon[] = [];
-    let nextUrl: string | null = `${baseUrl}/pokemon/?limit=100`;
+  getInitialPokemons: t.procedure.query(async (): Promise<{ pokemons: Pokemon[] }> => {
+    const response = await fetch(`${baseUrl}/pokemon/?limit=100`);
+    const data: PokemonListResponse = await response.json() as PokemonListResponse;
 
-    try {
-      while (nextUrl) {
-        const response = await fetch(nextUrl);
-        const data: PokemonListResponse = await response.json() as PokemonListResponse;
+    const pokemons = await Promise.all(data.results.map(async (pokemon): Promise<Pokemon> => {
+      const pokemonDetailsResponse = await fetch(pokemon.url);
+      const pokemonDetails: PokemonDetailResponse = await pokemonDetailsResponse.json() as PokemonDetailResponse;
+      const speciesResponse = await fetch(pokemonDetails.species.url);
+      const speciesData: SpeciesResponse = await speciesResponse.json() as SpeciesResponse;
 
-        const pokemons = await Promise.all(data.results.map(async (pokemon): Promise<Pokemon> => {
-          const pokemonDetailsResponse = await fetch(pokemon.url);
-          const pokemonDetails: PokemonDetailResponse = await pokemonDetailsResponse.json() as PokemonDetailResponse;
-          const speciesResponse = await fetch(pokemonDetails.species.url);
-          const speciesData: SpeciesResponse = await speciesResponse.json() as SpeciesResponse;
+      return {
+        name: pokemon.name,
+        url: pokemon.url,
+        generation: speciesData.generation.name,
+        types: pokemonDetails.types.map(type => type.type.name),
+      };
+    }));
 
+    return { pokemons };
+  }),
 
-          return {
-            name: pokemon.name,
-            url: pokemon.url,
-            generation: speciesData.generation.name,
-            types: pokemonDetails.types.map(type => type.type.name),
-          };
-        }));
+  getRemainingPokemons: t.procedure
+  .input(z.object({ nextOffset: z.number() }))
+  .query(async ({ input }): Promise<{ pokemons: Pokemon[] }> => {
+    const limit = 100;
+    const response = await fetch(`${baseUrl}/pokemon/?offset=${input.nextOffset}&limit=${limit}`);
+    const data: PokemonListResponse = await response.json() as PokemonListResponse;
 
-        allPokemons.push(...pokemons);
-        nextUrl = data.next;
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Error fetching Pokémon data: ${error.message}`);
-      } else {
-        throw new Error('Error fetching Pokémon data');
-      }
-    }
+    const pokemons = await Promise.all(data.results.map(async (pokemon): Promise<Pokemon> => {
+      const pokemonDetailsResponse = await fetch(pokemon.url);
+      const pokemonDetails: PokemonDetailResponse = await pokemonDetailsResponse.json() as PokemonDetailResponse;
+      const speciesResponse = await fetch(pokemonDetails.species.url);
+      const speciesData: SpeciesResponse = await speciesResponse.json() as SpeciesResponse;
 
-    return allPokemons;
+      return {
+        name: pokemon.name,
+        url: pokemon.url,
+        generation: speciesData.generation.name,
+        types: pokemonDetails.types.map(type => type.type.name),
+      };
+    }));
+
+    return { pokemons };
   }),
 
   getAllTypes: t.procedure.query(async (): Promise<string[]> => {

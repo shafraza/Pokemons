@@ -1,46 +1,95 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PokemonCard from "~/app/_components/PokemonCard";
 import { api } from "~/trpc/react";
 import { useFilters } from '~/context/FiltersContext';
 import type { Pokemon } from '~/types';
 
 const PokemonList: React.FC = () => {
-  // Destructure filter and search state from the context
-  const { searchTerm, setSearchTerm, filterType, setFilterType, filterGeneration, setFilterGeneration } = useFilters();
+  const { 
+    searchTerm, setSearchTerm, 
+    filterType, setFilterType, 
+    filterGeneration, setFilterGeneration, 
+    totalFetchedPokemons, setTotalFetchedPokemons, 
+    allPokemons, setAllPokemons,
+    offset, setOffset
+  } = useFilters();
   const [currentPage, setCurrentPage] = useState<number>(1);
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [allDataFetched, setAllDataFetched] = useState(false);
 
   const limit = 18; // Number of Pokémon displayed per page
 
   // Fetch Pokémon data and available types/generations
-  const { data: pokemonsResult, isLoading: isPokemonsLoading, isError: isPokemonsError, error: pokemonsError } = api.pokemon.getPokemons.useQuery();
+  const { data: initialPokemonsResult, isLoading: isPokemonsLoading, isError: isPokemonsError, error: pokemonsError } = api.pokemon.getInitialPokemons.useQuery(
+    undefined,
+    {
+      enabled: allPokemons.length === 0, // Skip query if there are already fetched Pokémon
+    }
+  );
+
   const { data: typesData } = api.pokemon.getAllTypes.useQuery();
   const { data: generationsData } = api.pokemon.getAllGenerations.useQuery();
 
-  const types: string[] = typesData ?? [];
-  const generations: string[] = generationsData ?? [];
+  useEffect(() => { 
+    if (initialPokemonsResult) { 
+        if(allPokemons.length === 0){
+          setAllPokemons(initialPokemonsResult.pokemons);
+          setTotalFetchedPokemons(initialPokemonsResult.pokemons.length); // Set the total fetched Pokémon count
+        }
+        setLoading(false);
+        
+    }
+  }, [initialPokemonsResult]);
 
-  // Show a loading spinner while data is being fetched
-  if (isPokemonsLoading) {
+  
+  const { data: remainingPokemonsResult, isLoading } = api.pokemon.getRemainingPokemons.useQuery(
+    { nextOffset: offset },
+    { enabled: !allDataFetched && allPokemons.length < 1302 } // Assuming 898 is the total number of Pokémon
+  );
+
+  useEffect(() => {
+    if (remainingPokemonsResult?.pokemons) { 
+      setAllPokemons((prev) => [...prev, ...remainingPokemonsResult.pokemons]);
+      setTotalFetchedPokemons((prev) => prev + remainingPokemonsResult.pokemons.length); // Update the total fetched Pokémon count
+
+      if (remainingPokemonsResult.pokemons.length < 100) {
+        setAllDataFetched(true);
+      } else {
+        setOffset((prevOffset) => prevOffset + 100);
+      }
+    }
+  }, [remainingPokemonsResult]);
+
+  useEffect(() => {
+    if (allPokemons.length === 0 && !allDataFetched) { 
+      setOffset(100);
+    }
+  }, [allPokemons, allDataFetched]);
+
+  if (loading || isPokemonsLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="loader"></div>
       </div>
     );
   }
-  
-  // Show an error message if there was a problem fetching the data
-  if (isPokemonsError) {
-    return <div className="text-center text-red-600">Error fetching Pokémon: {pokemonsError.message}</div>;
+
+  if (isPokemonsError || error) {
+    return <div className="text-center text-red-600">Error fetching Pokémon: {pokemonsError?.message || error}</div>;
   }
 
-  const pokemons: Pokemon[] = pokemonsResult ?? []; // Default to an empty array if no data is available
-  const filteredPokemons = applyFilters(pokemons); // Filter Pokémon based on search term and selected filters
-  const totalPages = Math.ceil(filteredPokemons.length / limit); // Calculate the total number of pages
-  const currentPokemons = filteredPokemons.slice((currentPage - 1) * limit, currentPage * limit); // Get Pokémon for the current page
+  const types: string[] = typesData ?? [];
+  const generations: string[] = generationsData ?? [];
 
-  // Function to apply search term and filters to the Pokémon list
+  const filteredPokemons = applyFilters(allPokemons);
+  const totalPages = Math.ceil(filteredPokemons.length / limit);
+  const currentPokemons = filteredPokemons.slice((currentPage - 1) * limit, currentPage * limit);
+
   function applyFilters(pokemons: Pokemon[] = []) {
     let filtered = pokemons;
 
@@ -60,25 +109,21 @@ const PokemonList: React.FC = () => {
     return filtered;
   }
 
-  // Handler for search term changes
   const handleSearchTermChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value.toLowerCase());
-    setCurrentPage(1); // Reset to the first page when the search term changes
+    setCurrentPage(1);
   };
 
-  // Handler for changing Pokémon type filter
   const handleTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setFilterType(event.target.value);
-    setCurrentPage(1); // Reset to the first page when the filter changes
+    setCurrentPage(1);
   };
 
-  // Handler for changing Pokémon generation filter
   const handleGenerationChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setFilterGeneration(event.target.value);
-    setCurrentPage(1); // Reset to the first page when the filter changes
+    setCurrentPage(1);
   };
 
-  // Handler for changing the page
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
@@ -112,6 +157,7 @@ const PokemonList: React.FC = () => {
       </div>
 
       {/* Pokémon Cards Section */}
+      {currentPokemons.length? 
       <div className="pokemon-cards">
         {currentPokemons.map((pokemon) => (
           <PokemonCard
@@ -123,12 +169,19 @@ const PokemonList: React.FC = () => {
           />
         ))}
       </div>
-
+      : 
+      <div className="flex items-center justify-center text-white">
+        <h1 className="text-5xl font-extrabold tracking-tight sm:text-[4rem]">
+          404<span className="text-[hsl(280,100%,70%)]">:</span> Not Found.
+        </h1>
+      </div>
+      }
+        
       {/* Pagination Controls */}
       <div className="pagination">
         <button
           onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1} // Disable the Previous button on the first page
+          disabled={currentPage === 1}
         >
           Previous
         </button>
@@ -137,7 +190,7 @@ const PokemonList: React.FC = () => {
         </span>
         <button
           onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages} // Disable the Next button on the last page
+          disabled={currentPage === totalPages}
         >
           Next
         </button>

@@ -1,6 +1,8 @@
 "use client";
+
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
+import type { Pokemon } from '~/types';
 
 interface FiltersContextProps {
   searchTerm: string;  // The current search term for filtering Pokémon
@@ -9,6 +11,12 @@ interface FiltersContextProps {
   setFilterType: (type: string) => void;  // Function to update the Pokémon type filter
   filterGeneration: string;  // The current Pokémon generation filter
   setFilterGeneration: (generation: string) => void;  // Function to update the Pokémon generation filter
+  totalFetchedPokemons: number;  // Total number of Pokémon fetched
+  setTotalFetchedPokemons: (count: number) => void;  // Function to update the total fetched Pokémon count
+  allPokemons: Pokemon[];  // Array of all fetched Pokémon
+  setAllPokemons: (pokemons: Pokemon[]) => void;  // Function to update the array of all Pokémon
+  offset: number; 
+  setOffset: (count: number) => void; 
 }
 
 // Create a Context for managing filter state
@@ -21,10 +29,22 @@ export const FiltersProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [filterType, setFilterType] = useState<string>('');
   // State for managing the Pokémon generation filter
   const [filterGeneration, setFilterGeneration] = useState<string>('');
+  // State for managing the total number of Pokémon fetched
+  const [totalFetchedPokemons, setTotalFetchedPokemons] = useState<number>(0);
+  // State for managing the array of all Pokémon
+  const [allPokemons, setAllPokemons] = useState<Pokemon[]>([]);
 
+  const [offset, setOffset] = useState<number>(0);
+  
   return (
     <FiltersContext.Provider
-      value={{ searchTerm, setSearchTerm, filterType, setFilterType, filterGeneration, setFilterGeneration }}
+      value={{ searchTerm, 
+        setSearchTerm, filterType, 
+        setFilterType, filterGeneration, 
+        setFilterGeneration, totalFetchedPokemons, 
+        setTotalFetchedPokemons, allPokemons, 
+        setAllPokemons, offset, setOffset
+      }}
     >
       {children}  {/* Provide the filter state and functions to the component tree */}
     </FiltersContext.Provider>
