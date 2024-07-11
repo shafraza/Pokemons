@@ -46,7 +46,7 @@ The objective of this project was to develop a small application using TypeScrip
    ```bash
    git clone https://github.com/shafraza/pokemons
 
-Enter the project directory
+### Enter the project directory
    cd pokemons
 
 ### Install Dependencies
